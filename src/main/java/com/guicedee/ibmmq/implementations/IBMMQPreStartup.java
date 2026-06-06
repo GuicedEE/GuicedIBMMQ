@@ -329,7 +329,6 @@ public class IBMMQPreStartup implements IGuicePreStartup<IBMMQPreStartup>
         };
     }
 
-    @SuppressWarnings("unchecked")
     private IBMMQConnectionOptions wrapConnectionOptions(String connectionName, IBMMQConnectionOptions ann)
     {
         return new IBMMQConnectionOptions()
