@@ -1,6 +1,6 @@
 package com.guicedee.ibmmq;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 import jakarta.jms.*;
 import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j2;

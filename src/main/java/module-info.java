@@ -21,7 +21,7 @@ module com.guicedee.ibmmq {
     provides IGuicePreStartup with IBMMQPreStartup;
     provides IGuicePreDestroy with IBMMQPreDestroy;
 
-    opens com.guicedee.ibmmq to com.google.guice, com.fasterxml.jackson.databind;
-    opens com.guicedee.ibmmq.implementations to com.fasterxml.jackson.databind, com.google.guice;
+    opens com.guicedee.ibmmq to com.google.guice, tools.jackson.databind;
+    opens com.guicedee.ibmmq.implementations to tools.jackson.databind, com.google.guice;
 }
 
