@@ -95,7 +95,7 @@ public class IBMMQModule extends AbstractModule implements IGuiceModule<IBMMQMod
      */
     public static ConnectionFactory createConnectionFactory(IBMMQConnectionOptions options) throws JMSException
     {
-        JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.WMQ_PROVIDER);
+        JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.JAKARTA_WMQ_PROVIDER);
         JmsConnectionFactory cf = ff.createConnectionFactory();
 
         cf.setStringProperty(WMQConstants.WMQ_HOST_NAME, options.host());

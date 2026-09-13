@@ -7,7 +7,7 @@ import com.google.inject.Key;
 import com.google.inject.name.Names;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
@@ -37,8 +37,7 @@ class IBMMQPostStartupTest
                 .withEnv("LICENSE", "accept")
                 .withEnv("MQ_QMGR_NAME", "QM1")
                 .withEnv("MQ_APP_PASSWORD", "passw0rd")
-                .waitingFor(new LogMessageWaitStrategy()
-                        .withRegEx(".*Started web server.*\\n")
+                .waitingFor(Wait.forSuccessfulCommand("chkmqready")
                         .withStartupTimeout(Duration.ofMinutes(3)));
 
         mqContainer.start();
