@@ -1,5 +1,7 @@
 package com.guicedee.ibmmq.implementations;
 
+import com.guicedee.client.utils.ClassLoading;
+
 import com.google.common.base.Strings;
 import com.guicedee.client.IGuiceContext;
 import com.guicedee.client.services.lifecycle.IGuicePreStartup;
@@ -131,7 +133,7 @@ public class IBMMQPreStartup implements IGuicePreStartup<IBMMQPreStartup>
     {
         log.debug("Found IBM MQ Connection - {}", classInfo.getName());
 
-        var connectionAnnotation = classInfo.loadClass().getAnnotation(IBMMQConnectionOptions.class);
+        var connectionAnnotation = ClassLoading.loadClass(classInfo).getAnnotation(IBMMQConnectionOptions.class);
         String connectionName = connectionAnnotation.value();
         IBMMQConnectionOptions wrapped = wrapConnectionOptions(connectionName, connectionAnnotation);
         packageConnections.computeIfAbsent(classInfo.getPackageName(), k -> new ArrayList<>()).add(wrapped);
@@ -160,7 +162,7 @@ public class IBMMQPreStartup implements IGuicePreStartup<IBMMQPreStartup>
 
         for (ClassInfo consumerClassInfo : consumers)
         {
-            Class<? extends IBMMQConsumer> consumerClass = (Class<? extends IBMMQConsumer>) consumerClassInfo.loadClass();
+            Class<? extends IBMMQConsumer> consumerClass = (Class<? extends IBMMQConsumer>) ClassLoading.loadClass(consumerClassInfo);
             if (completedConsumers.contains(consumerClass))
             {
                 continue;
@@ -227,14 +229,14 @@ public class IBMMQPreStartup implements IGuicePreStartup<IBMMQPreStartup>
         }
         else
         {
-            var queueDef = publisherClassInfo.loadClass().getAnnotation(IBMMQQueueDefinition.class);
+            var queueDef = ClassLoading.loadClass(publisherClassInfo).getAnnotation(IBMMQQueueDefinition.class);
             return queueDef != null ? queueDef.value() : null;
         }
     }
 
     private List<Field> getPublisherFields(ClassInfo aClass)
     {
-        Class<?> clazz = aClass.loadClass();
+        Class<?> clazz = ClassLoading.loadClass(aClass);
         return Arrays.stream(clazz.getDeclaredFields())
                 .filter(field -> !Modifier.isFinal(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
                 .filter(field -> {
