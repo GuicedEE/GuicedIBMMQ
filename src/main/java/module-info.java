@@ -5,6 +5,7 @@ import com.guicedee.client.services.lifecycle.IGuicePreStartup;
 import com.guicedee.ibmmq.implementations.*;
 
 module com.guicedee.ibmmq {
+    requires com.guicedee.jsonrepresentation;
     exports com.guicedee.ibmmq;
     exports com.guicedee.ibmmq.implementations;
 
