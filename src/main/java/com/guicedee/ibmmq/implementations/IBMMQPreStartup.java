@@ -113,8 +113,8 @@ public class IBMMQPreStartup implements IGuicePreStartup<IBMMQPreStartup>
                     if (ann != null)
                     {
                         log.debug("Found @IBMMQConnectionOptions on package: {}", pkgInfo.getName());
-                        String connectionName = ann.value();
-                        IBMMQConnectionOptions wrapped = wrapConnectionOptions(connectionName, ann);
+                        IBMMQConnectionOptions wrapped = wrapConnectionOptions(ann.value(), ann);
+                        String connectionName = wrapped.value();
                         packageConnections.computeIfAbsent(pkgInfo.getName(), k -> new ArrayList<>()).add(wrapped);
                         packageConnectionNames.put(pkgInfo.getName(), connectionName);
 
@@ -134,8 +134,8 @@ public class IBMMQPreStartup implements IGuicePreStartup<IBMMQPreStartup>
         log.debug("Found IBM MQ Connection - {}", classInfo.getName());
 
         var connectionAnnotation = ClassLoading.loadClass(classInfo).getAnnotation(IBMMQConnectionOptions.class);
-        String connectionName = connectionAnnotation.value();
-        IBMMQConnectionOptions wrapped = wrapConnectionOptions(connectionName, connectionAnnotation);
+        IBMMQConnectionOptions wrapped = wrapConnectionOptions(connectionAnnotation.value(), connectionAnnotation);
+        String connectionName = wrapped.value();
         packageConnections.computeIfAbsent(classInfo.getPackageName(), k -> new ArrayList<>()).add(wrapped);
         packageConnectionNames.put(classInfo.getPackageName(), connectionName);
 
@@ -170,13 +170,13 @@ public class IBMMQPreStartup implements IGuicePreStartup<IBMMQPreStartup>
             completedConsumers.add(consumerClass);
 
             var queueDef = consumerClass.getAnnotation(IBMMQQueueDefinition.class);
-            String queueName = queueDef.value();
             IBMMQQueueDefinition wrappedDef = wrapQueueDefinition(queueDef);
+            String queueName = wrappedDef.value();
 
             queueConsumerDefinitions.put(queueName, wrappedDef);
             queueConsumerClass.put(queueName, consumerClass);
             queueConsumerKeys.put(queueName, Key.get(consumerClass, Names.named(queueName)));
-            queueConnectionNames.putIfAbsent(queueName, connectionName);
+            queueConnectionNames.putIfAbsent(queueName, wrappedDef.connection().isEmpty() || wrappedDef.connection().equals("default") ? connectionName : wrappedDef.connection());
 
             // Also register publisher for this queue
             registerPublisher(queueName, connectionName, wrappedDef);
@@ -214,7 +214,7 @@ public class IBMMQPreStartup implements IGuicePreStartup<IBMMQPreStartup>
     {
         queuePublisherDefinitions.putIfAbsent(queueName, wrappedDef);
         queuePublisherKeys.putIfAbsent(queueName, Key.get(IBMMQPublisher.class, Names.named(queueName)));
-        queueConnectionNames.putIfAbsent(queueName, connectionName);
+        queueConnectionNames.putIfAbsent(queueName, wrappedDef.connection().isEmpty() || wrappedDef.connection().equals("default") ? connectionName : wrappedDef.connection());
     }
 
     private String getQueueNameFromField(Field field, ClassInfo publisherClassInfo)
@@ -406,14 +406,9 @@ public class IBMMQPreStartup implements IGuicePreStartup<IBMMQPreStartup>
      */
     static String envForName(String name, String property, String defaultValue)
     {
-        String normalizedName = name.toUpperCase().replace('-', '_').replace('.', '_');
-        String scopedKey = "IBMMQ_" + normalizedName + "_" + property;
-        String scopedValue = com.guicedee.client.Environment.getSystemPropertyOrEnvironment(scopedKey, null);
-        if (scopedValue != null && !scopedValue.isBlank())
-        {
-            return scopedValue;
-        }
-        return com.guicedee.client.Environment.getSystemPropertyOrEnvironment("IBMMQ_" + property, defaultValue);
+        String normalizedName = name.toUpperCase(java.util.Locale.ROOT).replace('-', '_').replace('.', '_');
+        return com.guicedee.client.Environment.getSystemPropertyOrEnvironment(
+                java.util.List.of("IBMMQ_" + normalizedName + "_" + property, "IBMMQ_" + property), defaultValue);
     }
 }
 
